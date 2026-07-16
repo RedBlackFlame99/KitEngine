@@ -1,0 +1,6 @@
+name: KitEngine
+version: '1.0-SNAPSHOT'
+main: com.github.nightdev.kitEngine.KitEngine
+api-version: '1.21'
+authors: [ NightDevMC ]
+website: https://youtube.com/@NightDevMC

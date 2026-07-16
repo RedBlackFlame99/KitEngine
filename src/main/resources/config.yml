@@ -1,0 +1,11 @@
+max-pages: 10
+
+colors:
+  red: "#FF0000"
+  orange: "#FFC33D"
+  yellow: "#FFFF52"
+  lime: "#7FFF73"
+  green: "#39A331"
+  light_blue: "#70FFF7"
+  blue: "#388DFF"
+  dark_blue: "#0A4EAD"
