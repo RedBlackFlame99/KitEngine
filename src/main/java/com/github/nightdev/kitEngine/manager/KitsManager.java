@@ -65,7 +65,7 @@ public class KitsManager {
                 YamlConfiguration conf = YamlConfiguration.loadConfiguration(playerFile);
                 KitContents playerContents = conf.getSerializable("layout", KitContents.class);
                 if (playerContents != null) {
-                    kit.updateContents(playerContents);
+                    return new Kit(kit, playerContents);
                 }
             }
         }
@@ -78,12 +78,13 @@ public class KitsManager {
     public static void layout(String kitName, Player player, @Nullable KitContents kitContents) {
         File kitFolder = new File(PLAYER_DATA_FOLDER, kitName);
         File playerLayoutFile = new File(kitFolder, player.getUniqueId() + ".yml");
-        YamlConfiguration conf = YamlConfiguration.loadConfiguration(playerLayoutFile);
-        if (kitContents == null) {
+        if (!playerLayoutFile.exists()) {
             playerLayoutFile.delete();
-        } else {
-            conf.set("layout", kitContents);
+            return;
         }
+        YamlConfiguration conf = YamlConfiguration.loadConfiguration(playerLayoutFile);
+        conf.set("layout", kitContents);
+
         try {
             conf.save(playerLayoutFile);
         } catch (Exception e) {

@@ -107,9 +107,7 @@ public class KitEditorGui implements InventoryHolder, Listener {
             if (KitEngineItems.isItem(KitEngineItems.EDITOR_RESET_KEY, item)) {
                 Kit kit = KitsManager.kit(kitName);
                 KitsManager.layout(kitName, player, null);
-                Bukkit.getScheduler().runTaskLater(KitEngine.getInstance(), task -> {
-                    player.openInventory(new KitEditorGui(player, kitName).getInventory());
-                }, 20);
+                player.openInventory(new KitEditorGui(player, kitName).getInventory());
             }
 
             else if (KitEngineItems.isItem(KitEngineItems.EDITOR_SAVE_KEY, item)) {

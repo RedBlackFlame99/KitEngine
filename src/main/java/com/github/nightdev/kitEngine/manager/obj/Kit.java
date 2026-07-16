@@ -29,6 +29,13 @@ public class Kit implements ConfigurationSerializable {
         this.cooldown = kitCooldown;
     }
 
+    public Kit(Kit kit, KitContents contents) {
+        this.meta = kit.meta;
+        this.contents = contents;
+        this.permission = kit.permission;
+        this.cooldown = kit.cooldown;
+    }
+
     public static Kit from(PlayerInventory inv) {
         return new Kit(
                 KitMeta.def(),
