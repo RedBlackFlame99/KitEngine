@@ -16,6 +16,11 @@ import java.util.*;
 import java.util.function.Consumer;
 
 public class KitsManager {
+    /*
+
+    ADD A KIT-version thing instead of mass deleting files
+
+     */
     private static File KITS_FILE;
     private static YamlConfiguration KITS_CONFIG;
 
