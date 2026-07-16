@@ -10,6 +10,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
@@ -34,11 +35,12 @@ public class KitAdminEditorGui implements InventoryHolder, Listener {
 
         Kit kit = KitsManager.kit(kitName);
 
-        inv.setItem(0, KitEngineItems.adminUpdateContentsItem());
+        inv.setItem(0, KitEngineItems.adminUpdateContentsItem(kit));
         inv.setItem(1, KitEngineItems.adminUpdatePermissionItem(kit));
-        inv.setItem(2, KitEngineItems.adminUpdateCooldownItem());
-        inv.setItem(3, KitEngineItems.adminUpdateDisplayItem());
-        inv.setItem(4, KitEngineItems.adminUpdateSlotItem());
+        inv.setItem(2, KitEngineItems.adminUpdateCooldownItem(kit));
+        inv.setItem(3, KitEngineItems.adminUpdateDisplayItem(kit));
+        inv.setItem(4, KitEngineItems.adminUpdateSlotItem(kit));
+        inv.setItem(5, KitEngineItems.adminUpdateDisplayNameItem(kit));
         //inv.setItem(5, KitEngineItems.adminUpdateColorItem(kit));
 
         return inv;
@@ -60,14 +62,25 @@ public class KitAdminEditorGui implements InventoryHolder, Listener {
                 KitsManager.update(kitName, kit -> {
                     kit.updateContents(player.getInventory());
                 });
-            } else if (KitEngineItems.isItem(KitEngineItems.ADMIN_UPDATE_PERMISSION_KEY, item)) {
-                KitsManager.update(kitName, kit -> {
-                    kit.permission = new KitPermission(!kit.permission.required(), "kitengine.kits." + kitName);
-                });
-                player.openInventory(new KitAdminEditorGui(kitName).getInventory());
-            } else if (KitEngineItems.isItem(KitEngineItems.ADMIN_UPDATE_COOLDOWN_KEY, item)) {
+                KitsManager.wipeLayouts(kitName);
+            }
+
+            else if (KitEngineItems.isItem(KitEngineItems.ADMIN_UPDATE_PERMISSION_KEY, item)) {
+                if (event.getClick() == ClickType.LEFT) {
+                    KitsManager.update(kitName, kit -> {
+                        kit.permission = new KitPermission(!kit.permission.required(), kit.permission.permission());
+                    });
+                    player.openInventory(new KitAdminEditorGui(kitName).getInventory());
+                } else if (event.getClick() == ClickType.RIGHT) {
+                    PlayerInputListener.setRequestingInput(player, "PERMISSION", kitName);
+                }
+            }
+
+            else if (KitEngineItems.isItem(KitEngineItems.ADMIN_UPDATE_COOLDOWN_KEY, item)) {
                 PlayerInputListener.setRequestingInput(player, "COOLDOWN", kitName);
-            } else if (KitEngineItems.isItem(KitEngineItems.ADMIN_UPDATE_DISPLAY_KEY, item)) {
+            }
+
+            else if (KitEngineItems.isItem(KitEngineItems.ADMIN_UPDATE_DISPLAY_KEY, item)) {
                 ItemStack cursor = event.getCursor();
                 if (cursor.isEmpty()) {
                     player.sendMessage("You must drag an item on to here.");
@@ -77,11 +90,19 @@ public class KitAdminEditorGui implements InventoryHolder, Listener {
                 KitsManager.update(kitName, kit -> {
                     kit.setDisplay(event.getCursor());
                 });
-                player.getInventory().close();
-            } else if (KitEngineItems.isItem(KitEngineItems.ADMIN_UPDATE_SLOT_KEY, item)) {
+                player.openInventory(new KitAdminEditorGui(adminEditorGui.kitName).getInventory());
+            }
+
+            else if (KitEngineItems.isItem(KitEngineItems.ADMIN_UPDATE_SLOT_KEY, item)) {
                 PlayerInputListener.setRequestingInput(player, "SLOT", kitName);
-            } else if (KitEngineItems.isItem(KitEngineItems.ADMIN_UPDATE_COLOR_KEY, item)) {
+            }
+
+            else if (KitEngineItems.isItem(KitEngineItems.ADMIN_UPDATE_COLOR_KEY, item)) {
                 PlayerInputListener.setRequestingInput(player, "COLOR", kitName);
+            }
+
+            else if (KitEngineItems.isItem(KitEngineItems.ADMIN_UPDATE_DISPLAY_NAME_KEY, item)) {
+                PlayerInputListener.setRequestingInput(player, "DISPLAY_NAME", kitName);
             }
         }
     }

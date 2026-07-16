@@ -1,10 +1,14 @@
 package com.github.nightdev.kitEngine.commands;
 
+import com.github.nightdev.kitEngine.KitEngine;
+import com.github.nightdev.kitEngine.core.KitEngineConfig;
 import com.github.nightdev.kitEngine.guis.KitAdminEditorGui;
 import com.github.nightdev.kitEngine.manager.KitsManager;
 import com.github.nightdev.kitEngine.manager.obj.Kit;
 import io.papermc.paper.command.brigadier.BasicCommand;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -34,6 +38,19 @@ public class KitAdminCommand implements BasicCommand {
                 String kitName = args[1];
                 player.openInventory(new KitAdminEditorGui(kitName).getInventory());
             }
+            else if (args[0].equalsIgnoreCase("delete") && args.length > 1) {
+                String kitName = args[1];
+                KitsManager.delete(kitName);
+            }
+            else if (args[0].equalsIgnoreCase("reset") && args.length > 2) {
+                String targetName = args[2];
+                OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
+                String kitName = args[1];
+                KitsManager.resetCooldown(kitName, target.getUniqueId());
+            }
+            else if (args[0].equalsIgnoreCase("reload")) {
+                KitEngineConfig.reload(KitEngine.getInstance());
+            }
         }
 
     }
@@ -46,17 +63,28 @@ public class KitAdminCommand implements BasicCommand {
             e.add("save");
             e.add("edit");
             e.add("delete");
+            e.add("reset");
+            e.add("reload");
         }
 
         if (args.length == 1) {
             if ("save".toLowerCase().startsWith(args[0].toLowerCase())) e.add("save");
             if ("edit".toLowerCase().startsWith(args[0].toLowerCase())) e.add("edit");
             if ("delete".toLowerCase().startsWith(args[0].toLowerCase())) e.add("delete");
+            if ("reset".toLowerCase().startsWith(args[0].toLowerCase())) e.add("reset");
+            if ("reload".toLowerCase().startsWith(args[0].toLowerCase())) e.add("reload");
         }
 
         if (args.length == 2) {
             for (String name : KitsManager.kits()) {
                 if (name.toLowerCase().startsWith(args[1].toLowerCase())) e.add(name);
+            }
+        }
+
+        if (args.length == 3) {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                String name = player.getName();
+                if (name.toLowerCase().startsWith(args[2].toLowerCase())) e.add(name);
             }
         }
 

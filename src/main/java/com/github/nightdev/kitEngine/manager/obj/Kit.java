@@ -40,13 +40,24 @@ public class Kit implements ConfigurationSerializable {
         return new Kit(
                 KitMeta.def(),
                 KitContents.fromInventory(inv),
-                new KitPermission(false, "none"),
+                new KitPermission(false, "kitengine.kit"),
                 new KitCooldown(false, -1)
         );
     }
 
+    public void setDisplayName(String displayName) {
+        this.meta = new KitMeta(
+                displayName,
+                this.meta.display(),
+                this.meta.slot(),
+                this.meta.color()
+        );
+    }
+
+
     public void setDisplay(ItemStack item) {
         this.meta = new KitMeta(
+                this.meta.displayName(),
                 item,
                 this.meta.slot(),
                 this.meta.color()
@@ -58,6 +69,7 @@ public class Kit implements ConfigurationSerializable {
 
     public void setSlot(int slot) {
         this.meta = new KitMeta(
+                this.meta.displayName(),
                 this.meta.display(),
                 slot,
                 this.meta.color()
@@ -67,9 +79,6 @@ public class Kit implements ConfigurationSerializable {
         return meta.slot();
     }
 
-    public void updateContents(KitContents contents) {
-        this.contents = contents;
-    }
     public void updateContents(PlayerInventory inv) {
         this.contents = KitContents.fromInventory(inv);
     }
@@ -78,12 +87,6 @@ public class Kit implements ConfigurationSerializable {
         this.permission = new KitPermission(
                 true,
                 perm
-        );
-    }
-    public void unsetPermission() {
-        this.permission = new KitPermission(
-                false,
-                "none"
         );
     }
 

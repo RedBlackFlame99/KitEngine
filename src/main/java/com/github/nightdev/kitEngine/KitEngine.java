@@ -11,6 +11,8 @@ import com.github.nightdev.kitEngine.guis.KitsGui;
 import com.github.nightdev.kitEngine.guis.input.PlayerInputListener;
 import com.github.nightdev.kitEngine.manager.KitsManager;
 import com.github.nightdev.kitEngine.manager.obj.*;
+import org.bstats.bukkit.Metrics;
+import org.bstats.charts.SimplePie;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -36,7 +38,7 @@ public final class KitEngine extends JavaPlugin {
         KitsManager.init(this);
 
         PluginManager p = getServer().getPluginManager();
-        p.registerEvents(new KitsGui(0), this);
+        p.registerEvents(new KitsGui(0, null), this);
         p.registerEvents(new KitEditorGui(null, ""), this);
         p.registerEvents(new KitAdminEditorGui(), this);
 
@@ -47,6 +49,8 @@ public final class KitEngine extends JavaPlugin {
         registerCommand("kits", new KitsCommand());
         registerCommand("kitadmin", new KitAdminCommand());
 
+        int pluginId = 32670;
+        Metrics metrics = new Metrics(this, pluginId);
     }
 
     @Override

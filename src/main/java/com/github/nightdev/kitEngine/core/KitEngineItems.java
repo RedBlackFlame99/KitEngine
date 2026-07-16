@@ -1,12 +1,14 @@
 package com.github.nightdev.kitEngine.core;
 
 import com.github.nightdev.kitEngine.KitEngine;
+import com.github.nightdev.kitEngine.manager.KitsManager;
 import com.github.nightdev.kitEngine.manager.obj.Kit;
 import com.github.nightdev.kitEngine.utils.KitUtils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Container;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
@@ -25,6 +27,7 @@ public class KitEngineItems {
     public static NamespacedKey ADMIN_UPDATE_COOLDOWN_KEY;
     public static NamespacedKey ADMIN_UPDATE_DISPLAY_KEY;
     public static NamespacedKey ADMIN_UPDATE_SLOT_KEY;
+    public static NamespacedKey ADMIN_UPDATE_DISPLAY_NAME_KEY;
     public static NamespacedKey ADMIN_UPDATE_COLOR_KEY;
     public static NamespacedKey EDITOR_RESET_KEY;
     public static NamespacedKey EDITOR_SAVE_KEY;
@@ -39,6 +42,7 @@ public class KitEngineItems {
         ADMIN_UPDATE_COOLDOWN_KEY = random(plugin);
         ADMIN_UPDATE_DISPLAY_KEY = random(plugin);
         ADMIN_UPDATE_SLOT_KEY = random(plugin);
+        ADMIN_UPDATE_DISPLAY_NAME_KEY = random(plugin);
         ADMIN_UPDATE_COLOR_KEY = random(plugin);
         EDITOR_RESET_KEY = random(plugin);
         EDITOR_SAVE_KEY = random(plugin);
@@ -82,13 +86,18 @@ public class KitEngineItems {
         return item;
     }
 
-    public static ItemStack adminUpdateContentsItem() {
+    public static ItemStack adminUpdateContentsItem(Kit kit) {
         ItemStack item = ItemStack.of(Material.CHEST);
 
         item.editMeta(meta -> {
-            meta.displayName(Component.text("UPDATE CONTENTS"));
+            meta.displayName(KitUtils.format("&b&lCONTENTS"));
             meta.lore(List.of(
-                    Component.text("Click to update all contents.")
+                    Component.empty(),
+                    KitUtils.format("&8| &7Left Click to update all contents"),
+                    Component.empty(),
+                    KitUtils.format("&cThis will use items in your inventory!"),
+                    KitUtils.format("&cThis will wipe all player layouts for this kit!"),
+                    KitUtils.format("&c&n⚠ This cannot be undone.")
             ));
         });
 
@@ -104,10 +113,10 @@ public class KitEngineItems {
         item.editMeta(meta -> {
             meta.displayName(KitUtils.format("&b&lPERMISSION"));
             meta.lore(List.of(
-                    KitUtils.format("&7Required: " + kit.permission.required()),
-                    KitUtils.format("&7Permission: " + kit.permission.permission()),
+                    KitUtils.format("&7Required: &f" + kit.permission.required()),
+                    KitUtils.format("&7Permission: &f" + kit.permission.permission()),
                     KitUtils.format(""),
-                    KitUtils.format("&7Click to toggle.")
+                    KitUtils.format("&7Left Click to toggle.")
             ));
         });
 
@@ -117,13 +126,17 @@ public class KitEngineItems {
 
         return item;
     }
-    public static ItemStack adminUpdateCooldownItem() {
+    public static ItemStack adminUpdateCooldownItem(Kit kit) {
         ItemStack item = ItemStack.of(Material.CLOCK);
 
         item.editMeta(meta -> {
-            meta.displayName(Component.text("UPDATE COOLDOWN"));
+            meta.displayName(KitUtils.format("&b&lCOOLDOWN"));
             meta.lore(List.of(
-                    Component.text("Click to update kit cooldown.")
+                    KitUtils.format("&7Enabled: &f" + kit.cooldown.enabled()),
+                    KitUtils.format("&7Seconds: &f" + kit.cooldown.seconds()),
+                    Component.empty(),
+                    KitUtils.format("&8| &7Left Click to toggle."),
+                    KitUtils.format("&8| &7Right Click to change ticks.")
             ));
         });
 
@@ -133,13 +146,15 @@ public class KitEngineItems {
 
         return item;
     }
-    public static ItemStack adminUpdateDisplayItem() {
+    public static ItemStack adminUpdateDisplayItem(Kit kit) {
         ItemStack item = ItemStack.of(Material.ITEM_FRAME);
 
         item.editMeta(meta -> {
-            meta.displayName(Component.text("UPDATE DISPLAY ITEM"));
+            meta.displayName(KitUtils.format("&b&lDISPLAY ITEM"));
             meta.lore(List.of(
-                    Component.text("Click to update kit display.")
+                    KitUtils.format("&7Current Item: &f" + kit.getDisplay().getType().name()),
+                    Component.empty(),
+                    KitUtils.format("&8| &7Drag an item here to change it.")
             ));
         });
 
@@ -149,13 +164,15 @@ public class KitEngineItems {
 
         return item;
     }
-    public static ItemStack adminUpdateSlotItem() {
+    public static ItemStack adminUpdateSlotItem(Kit kit) {
         ItemStack item = ItemStack.of(Material.TRIPWIRE_HOOK);
 
         item.editMeta(meta -> {
-            meta.displayName(Component.text("UPDATE SLOT"));
+            meta.displayName(KitUtils.format("&b&lSLOT"));
             meta.lore(List.of(
-                    Component.text("Click to update kit slot.")
+                    KitUtils.format("&7Slot: &e" + kit.meta.slot()),
+                    Component.empty(),
+                    KitUtils.format("&8| &7Left Click to change the slot.")
             ));
         });
 
@@ -165,18 +182,20 @@ public class KitEngineItems {
 
         return item;
     }
-    public static ItemStack adminUpdateColorItem(Kit kit) {
-        ItemStack item = ItemStack.of(Material.BRUSH);
+    public static ItemStack adminUpdateDisplayNameItem(Kit kit) {
+        ItemStack item = ItemStack.of(Material.NAME_TAG);
 
         item.editMeta(meta -> {
-            meta.displayName(KitUtils.format("&b&lCOLOR"));
+            meta.displayName(KitUtils.format("&b&lDISPLAY NAME"));
             meta.lore(List.of(
-                    //KitUtils.format("&7Current Color: " + kit.getColor())
+                    KitUtils.format("&7Display Name: &f" + kit.meta.displayName()),
+                    Component.empty(),
+                    KitUtils.format("&8| &7Left Click to change the display name.")
             ));
         });
 
         item.editPersistentDataContainer(pdc -> {
-            pdc.set(ADMIN_UPDATE_COLOR_KEY, PersistentDataType.BOOLEAN, true);
+            pdc.set(ADMIN_UPDATE_DISPLAY_NAME_KEY, PersistentDataType.BOOLEAN, true);
         });
 
         return item;
@@ -205,17 +224,25 @@ public class KitEngineItems {
         return item;
     }
 
-    public static ItemStack kitItem(String name, Kit kit) {
+    public static ItemStack kitItem(String name, Kit kit, Player player) {
         ItemStack item = kit.getDisplay().clone();
         item.editMeta(meta -> {
-            meta.displayName(KitUtils.format("&b" + name));
+            if (kit.meta.displayName().isEmpty()) {
+                meta.displayName(KitUtils.format("&b" + name));
+            } else {
+                meta.displayName(KitUtils.format("&b" + kit.meta.displayName()));
+            }
 
             List<Component> lore = new ArrayList<>();
             lore.add(KitUtils.format("&8ᴘʟᴀʏᴇʀ ᴋɪᴛ"));
             lore.add(Component.empty());
             lore.add(KitUtils.format("&8| &7Left Click to claim."));
             lore.add(KitUtils.format("&8| &7Right Click to edit."));
-            lore.add(KitUtils.format("&8| &eCooldown: 5m"));
+            if (KitsManager.cooldown(name, player) == 0) {
+                lore.add(KitUtils.format("&8| &aReady to claim!"));
+            } else {
+                lore.add(KitUtils.format("&8| &eCooldown: " + KitUtils.formatTime(KitsManager.cooldown(name, player))));
+            }
             meta.lore(lore);
 
         });

@@ -26,6 +26,7 @@ public class PlayerInputListener implements Listener {
         PLAYER_INPUT_PENDING.put(player.getUniqueId(), type);
         PLAYER_INPUT_PENDING_KITS.put(player.getUniqueId(), kitName);
         player.closeInventory();
+        player.sendMessage("Type what you want the " + type + " to be for " + kitName);
     }
 
 
@@ -41,12 +42,12 @@ public class PlayerInputListener implements Listener {
             boolean success = false;
             if (pendingInput.equalsIgnoreCase("COOLDOWN")) {
                 try {
-                    int ticks = Integer.parseInt(input);
-                    if (ticks > 0) {
+                    int seconds = Integer.parseInt(input);
+                    if (seconds > 0) {
                         KitsManager.update(kitName, kit -> {
-                            kit.setCooldown(ticks);
+                            kit.setCooldown(seconds);
                         });
-                        player.sendMessage("You have updated the cooldown to be " + ticks + " ticks.");
+                        player.sendMessage("You have updated the cooldown to be " + seconds + " seconds.");
                     } else {
                         KitsManager.update(kitName, Kit::unsetCooldown);
                         player.sendMessage("You have removed the cooldown!");
@@ -55,7 +56,9 @@ public class PlayerInputListener implements Listener {
                 } catch (Exception e) {
                     player.sendMessage(input + " is not a valid integer.");
                 }
-            } else if (pendingInput.equalsIgnoreCase("SLOT")) {
+            }
+
+            else if (pendingInput.equalsIgnoreCase("SLOT")) {
                 try {
                     int slot = Integer.parseInt(input);
                     KitsManager.update(kitName, kit -> {
@@ -66,19 +69,21 @@ public class PlayerInputListener implements Listener {
 
                 }
             }
-            /*
-            else if (pendingInput.equalsIgnoreCase("COLOR")) {
-                if (KitEngineConfig.getColors().contains(input)) {
-                    KitsManager.update(kitName, kit -> {
-                        kit.setColor(input);
-                    });
-                    success = true;
-                } else {
-                    player.sendMessage("Invalid color option");
-                }
+
+            else if (pendingInput.equalsIgnoreCase("DISPLAY_NAME")) {
+                KitsManager.update(kitName, kit -> {
+                    kit.setDisplayName(input);
+                });
+                success = true;
             }
 
-             */
+
+            else if (pendingInput.equalsIgnoreCase("PERMISSION")) {
+                KitsManager.update(kitName, kit -> {
+                    kit.setPermission(input);
+                });
+                success = true;
+            }
 
             if (success) {
                 PLAYER_INPUT_PENDING.remove(player.getUniqueId());

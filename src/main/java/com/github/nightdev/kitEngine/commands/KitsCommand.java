@@ -14,7 +14,7 @@ public class KitsCommand implements BasicCommand {
             return;
         }
 
-        player.openInventory(new KitsGui(1).getInventory());
+        player.openInventory(new KitsGui(1, player).getInventory());
 
     }
 }

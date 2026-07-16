@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Map;
 
 public record KitMeta(
+        String displayName,
         ItemStack display,
         int slot,
         String color
@@ -16,6 +17,7 @@ public record KitMeta(
 
     public static KitMeta def() {
         return new KitMeta(
+                "",
                 ItemStack.of(Material.CHEST),
                 -1,
                 KitUtils.color("light_blue")
@@ -25,6 +27,7 @@ public record KitMeta(
     @Override
     public @NotNull Map<String, Object> serialize() {
         return Map.of(
+                "displayName", displayName,
                 "display", display,
                 "slot", slot,
                 "color", color
@@ -33,6 +36,7 @@ public record KitMeta(
 
     public static KitMeta deserialize(Map<String, Object> data) {
         return new KitMeta(
+                (String) data.getOrDefault("displayName", ""),
                 (ItemStack) data.getOrDefault("display", ItemStack.of(Material.CHEST)),
                 (int) data.getOrDefault("slot", -1),
                 (String) data.getOrDefault("color", KitUtils.color("light_blue"))

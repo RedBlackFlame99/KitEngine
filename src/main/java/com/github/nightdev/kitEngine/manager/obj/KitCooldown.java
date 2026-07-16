@@ -7,20 +7,20 @@ import java.util.Map;
 
 public record KitCooldown(
         boolean enabled,
-        int ticks
+        int seconds
 ) implements ConfigurationSerializable {
     @Override
     public @NotNull Map<String, Object> serialize() {
         return Map.of(
                 "enabled", enabled,
-                "ticks", ticks
+                "seconds", seconds
         );
     }
 
     public static KitCooldown deserialize(Map<String, Object> data) {
         return new KitCooldown(
-                (boolean) data.get("enabled"),
-                (int) data.get("ticks")
+                (boolean) data.getOrDefault("enabled", true),
+                (int) data.getOrDefault("seconds", 3600)
         );
     }
 }

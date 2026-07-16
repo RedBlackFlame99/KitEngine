@@ -127,7 +127,7 @@ public class KitEditorGui implements InventoryHolder, Listener {
                         inv.getItem(40)
                 );
                 KitsManager.layout(kitEditor.kitName, player, kitContents);
-                player.openInventory(new KitsGui(1).getInventory());
+                player.openInventory(new KitsGui(1, player).getInventory());
             }
         }
     }

@@ -2,6 +2,7 @@ package com.github.nightdev.kitEngine.core;
 
 import com.github.nightdev.kitEngine.KitEngine;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;

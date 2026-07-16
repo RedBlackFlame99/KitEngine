@@ -16,4 +16,37 @@ public class KitUtils {
         return "&" + plugin.getConfig().getString("colors." + id, "#FF0000");
     }
 
+    public static String formatTime(int seconds) {
+        int days = 0;
+        int hours = 0;
+        int minutes = 0;
+        while (seconds > 59) {
+            minutes++;
+            seconds-=60;
+        }
+        while (minutes > 59) {
+            hours++;
+            minutes-=60;
+        }
+        while (hours > 23) {
+            days++;
+            hours-=24;
+        }
+        String m = "";
+        if (days > 0) {
+            m = days + "d ";
+        }
+        if (hours > 0) {
+            m = m + hours + "h ";
+        }
+        if (minutes > 0) {
+            m = m + minutes + "m ";
+        }
+        if (seconds > 0) {
+            m = m + seconds + "s";
+        }
+        return m;
+
+    }
+
 }

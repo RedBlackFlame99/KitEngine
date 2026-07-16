@@ -19,8 +19,8 @@ public record KitPermission(
 
     public static KitPermission deserialize(Map<String, Object> data) {
         return new KitPermission(
-                (boolean) data.get("required"),
-                (String) data.get("perm")
+                (boolean) data.getOrDefault("required", false),
+                (String) data.getOrDefault("perm", "kitengine.kit")
         );
     }
 }

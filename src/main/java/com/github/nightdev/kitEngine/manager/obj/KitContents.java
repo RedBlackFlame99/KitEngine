@@ -33,19 +33,21 @@ public record KitContents(
 
     @Override
     public @NotNull Map<String, Object> serialize() {
-        return Map.of(
-                "contents", contents,
-                "helmet", helmet,
-                "chestplate", chestplate,
-                "leggings", leggings,
-                "boots", boots,
-                "offhand", offhand
-        );
+        Map<String, Object> data = new HashMap<>();
+        data.put("contents", contents);
+        data.put("helmet", helmet);
+        data.put("chestplate", chestplate);
+        data.put("leggings", leggings);
+        data.put("boots", boots);
+        data.put("offhand", offhand);
+
+        return data;
     }
 
+    @SuppressWarnings("unchecked")
     public static KitContents deserialize(Map<String, Object> data) {
         return new KitContents(
-                (Map<Integer, ItemStack>) data.get("contents"),
+                (Map<Integer, ItemStack>) data.getOrDefault("contents", new HashMap<>()),
                 (ItemStack) data.get("helmet"),
                 (ItemStack) data.get("chestplate"),
                 (ItemStack) data.get("leggings"),

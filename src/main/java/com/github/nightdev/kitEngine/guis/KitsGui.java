@@ -12,16 +12,23 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 
 public class KitsGui implements InventoryHolder, Listener {
     private final int page;
+    private final Player player;
+    private Inventory inventory;
+    private BukkitTask task;
 
-    public KitsGui(int page) {
+    public KitsGui(int page, Player player) {
         this.page = page;
+        this.player = player;
     }
 
     @Override
@@ -38,17 +45,27 @@ public class KitsGui implements InventoryHolder, Listener {
             inv.setItem(50, KitEngineItems.nextPageItem(""));
         }
 
+        refreshItems(inv);
+        this.task = new BukkitRunnable() {
+            @Override
+            public void run() {
+                refreshItems(inv);
+            }
+        }.runTaskTimer(KitEngine.getInstance(), 5, 5);
+
+        return inv;
+    }
+
+    public void refreshItems(Inventory inv) {
         for (String kitName : KitsManager.kits()) {
             Kit kit = KitsManager.kit(kitName);
             int slot = kit.meta.slot();
 
             if (slot >= minSlot() && slot <= maxSlot()) {
                 int realSlot = realSlot(slot);
-                inv.setItem(realSlot, KitEngineItems.kitItem(kitName, kit));
+                inv.setItem(realSlot, KitEngineItems.kitItem(kitName, kit, this.player));
             }
         }
-
-        return inv;
     }
 
     public int minSlot() {
@@ -84,12 +101,19 @@ public class KitsGui implements InventoryHolder, Listener {
             }
 
             else if (KitEngineItems.isItem(KitEngineItems.NEXT_PAGE_KEY, item)) {
-                player.openInventory(new KitsGui(gui.page + 1).getInventory());
+                player.openInventory(new KitsGui(gui.page + 1, player).getInventory());
             }
             else if (KitEngineItems.isItem(KitEngineItems.BACK_PAGE_KEY, item)) {
-                player.openInventory(new KitsGui(gui.page - 1).getInventory());
+                player.openInventory(new KitsGui(gui.page - 1, player).getInventory());
             }
 
+        }
+    }
+
+    @EventHandler
+    public void on(InventoryCloseEvent event) {
+        if (event.getView().getTopInventory().getHolder() instanceof KitsGui gui) {
+            gui.task.cancel();
         }
     }
 }
