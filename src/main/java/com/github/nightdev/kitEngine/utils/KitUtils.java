@@ -11,9 +11,11 @@ public class KitUtils {
                 .decoration(TextDecoration.ITALIC, false);
     }
 
-    public static String color(String id) {
-        KitEngine plugin = KitEngine.getInstance();
-        return "&" + plugin.getConfig().getString("colors." + id, "#FF0000");
+    public static String bool(boolean v) {
+        if (v) {
+            return "&atrue";
+        }
+        return "&#FF0000false";
     }
 
     public static String formatTime(int seconds) {

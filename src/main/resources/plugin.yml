@@ -1,0 +1,26 @@
+name: KitEngine
+version: '1.0-SNAPSHOT'
+main: com.github.nightdev.kitEngine.KitEngine
+api-version: '1.21'
+authors: [ NightDevMC ]
+website: https://youtube.com/@NightDevMC
+
+commands:
+  kit:
+    description: open a kit
+  kits:
+    description: opens the kits menu
+  kitadmin:
+    description: kit admin menu
+  kit2:
+    description: v2 of kits
+  kits2:
+    description: v2 of /kits
+  kitadmin2:
+    description: v2 of admin kits
+  db:
+    description: e
+
+soft-depend:
+  - PlaceholderAPI
+  - Vault

@@ -15,6 +15,10 @@ public class KitEngineConfig {
         CONFIG = plugin.getConfig();
     }
 
+    public static int getMaxPages() {
+        return CONFIG.getInt("max-pages", 10);
+    }
+
     public static List<String> getColors() {
         return new ArrayList<>(CONFIG.getConfigurationSection("colors").getKeys(false));
     }

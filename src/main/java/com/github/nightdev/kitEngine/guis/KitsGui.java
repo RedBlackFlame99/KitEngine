@@ -1,11 +1,12 @@
 package com.github.nightdev.kitEngine.guis;
 
 import com.github.nightdev.kitEngine.KitEngine;
+import com.github.nightdev.kitEngine.core.KitEngineConfig;
 import com.github.nightdev.kitEngine.core.KitEngineItems;
-import com.github.nightdev.kitEngine.manager.KitsManager;
-import com.github.nightdev.kitEngine.manager.obj.Kit;
+import com.github.nightdev.kitEngine.manager.KitMeta2;
+import com.github.nightdev.kitEngine.manager.KitsManager2;
+import com.github.nightdev.kitEngine.manager.result.KitResult;
 import com.github.nightdev.kitEngine.utils.KitUtils;
-import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -41,44 +42,44 @@ public class KitsGui implements InventoryHolder, Listener {
         if (page > 1) {
             inv.setItem(48, KitEngineItems.backPageItem(""));
         }
-        if (page < KitEngine.getInstance().getConfig().getInt("max-pages")) {
+        if (page < KitEngineConfig.getMaxPages()) {
             inv.setItem(50, KitEngineItems.nextPageItem(""));
         }
 
-        refreshItems(inv);
-        this.task = new BukkitRunnable() {
+        task = new BukkitRunnable() {
             @Override
             public void run() {
                 refreshItems(inv);
             }
-        }.runTaskTimer(KitEngine.getInstance(), 5, 5);
+        }.runTaskTimer(KitEngine.getInstance(), 0, 20);
 
         return inv;
     }
 
-    public void refreshItems(Inventory inv) {
-        for (String kitName : KitsManager.kits()) {
-            Kit kit = KitsManager.kit(kitName);
-            int slot = kit.meta.slot();
+    private void refreshItems(Inventory inv) {
+        for (String kitName : KitsManager2.getKits()) {
+            KitMeta2 meta = KitsManager2.loadKitMeta(kitName);
+            int slot = meta.slot;
 
-            if (slot >= minSlot() && slot <= maxSlot()) {
-                int realSlot = realSlot(slot);
-                inv.setItem(realSlot, KitEngineItems.kitItem(kitName, kit, this.player));
+            if (slot >= minSlot(this.page) && slot <= maxSlot(this.page)) {
+                int realSlot = realSlot(slot, this.page);
+                inv.setItem(realSlot, KitEngineItems.kitItem(kitName, this.player));
             }
         }
     }
 
-    public int minSlot() {
-        return (44 * page) - 44;
+    private static final int SLOTS_PER_PAGE = 45; // real slots 0-44 are usable per page
+
+    public static int minSlot(int page) {
+        return SLOTS_PER_PAGE * (page - 1); // inclusive
     }
-    public int maxSlot() {
-        return (44 * page);
+
+    public static int maxSlot(int page) {
+        return SLOTS_PER_PAGE * page - 1; // inclusive
     }
-    public int realSlot(int slot) {
-        while (slot > 44) {
-            slot -= 44;
-        }
-        return slot;
+
+    public static int realSlot(int slot, int page) {
+        return slot - minSlot(page);
     }
 
     @EventHandler
@@ -92,27 +93,40 @@ public class KitsGui implements InventoryHolder, Listener {
 
             if (KitEngineItems.isItem(KitEngineItems.KIT_ITEM_KEY, item)) {
                 String kitName = KitEngineItems.kit(item);
+                if (!KitsManager2.kitExists(kitName)) {
+                    player.sendMessage("Failed to load kit.");
+                    return;
+                }
+                KitMeta2 meta = KitsManager2.loadKitMeta(kitName);
                 if (event.getClick() == ClickType.LEFT) {
-                    KitsManager.load(kitName, player);
-                    player.closeInventory();
+                    KitResult result = KitsManager2.claimKit(kitName, player);
+                    KitsManager2.handleEvents(kitName, player, result);
+                    if (KitsManager2.remaining(kitName, player.getUniqueId(), meta) == 0) {
+                        KitsManager2.setCooldown(kitName, player.getUniqueId());
+                    }
+                    event.setCurrentItem(KitEngineItems.kitItem(kitName, player));
                 } else if (event.getClick() == ClickType.RIGHT) {
+                    gui.task.cancel();
                     player.openInventory(new KitEditorGui(player, kitName).getInventory());
                 }
             }
 
             else if (KitEngineItems.isItem(KitEngineItems.NEXT_PAGE_KEY, item)) {
+                gui.task.cancel();
                 player.openInventory(new KitsGui(gui.page + 1, player).getInventory());
             }
             else if (KitEngineItems.isItem(KitEngineItems.BACK_PAGE_KEY, item)) {
+                gui.task.cancel();
                 player.openInventory(new KitsGui(gui.page - 1, player).getInventory());
             }
 
         }
     }
-
     @EventHandler
     public void on(InventoryCloseEvent event) {
-        if (event.getView().getTopInventory().getHolder() instanceof KitsGui gui) {
+        Player player = (Player) event.getPlayer();
+        Inventory inv = event.getView().getTopInventory();
+        if (inv.getHolder() instanceof KitsGui gui) {
             gui.task.cancel();
         }
     }

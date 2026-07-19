@@ -2,61 +2,105 @@ package com.github.nightdev.kitEngine.commands;
 
 import com.github.nightdev.kitEngine.KitEngine;
 import com.github.nightdev.kitEngine.core.KitEngineConfig;
+import com.github.nightdev.kitEngine.core.KitEngineLang;
+import com.github.nightdev.kitEngine.core.KitEnginePerms;
 import com.github.nightdev.kitEngine.guis.KitAdminEditorGui;
-import com.github.nightdev.kitEngine.manager.KitsManager;
-import com.github.nightdev.kitEngine.manager.obj.Kit;
-import io.papermc.paper.command.brigadier.BasicCommand;
-import io.papermc.paper.command.brigadier.CommandSourceStack;
+import com.github.nightdev.kitEngine.manager.KitContents2;
+import com.github.nightdev.kitEngine.manager.KitsManager2;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
-public class KitAdminCommand implements BasicCommand {
+public class KitAdminCommand implements TabExecutor {
     @Override
-    public void execute(CommandSourceStack css, String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String @NotNull [] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage("Only players can do this.");
+            return false;
+        }
 
-        if (!(css.getSender() instanceof Player player)) {
-            css.getSender().sendMessage("Only players can do this.");
-            return;
+        if (!player.hasPermission(KitEnginePerms.ADMIN_USE)) {
+            player.sendMessage(KitEngineLang.noPermission(KitEnginePerms.ADMIN_USE));
+            return false;
         }
 
         if (args.length > 0) {
             if (args[0].equalsIgnoreCase("save") && args.length > 1) {
+                if (!player.hasPermission(KitEnginePerms.ADMIN_SAVE)) {
+                    player.sendMessage(KitEngineLang.noPermission(KitEnginePerms.ADMIN_SAVE));
+                    return false;
+                }
+
                 String kitName = args[1];
                 try {
-                    KitsManager.create(kitName, Kit.from(player.getInventory()));
+                    KitsManager2.createKit(kitName, KitContents2.fromInventory(player.getInventory()));
                     player.sendMessage("Successfully created kit named " + kitName);
                 } catch (Exception e) {
                     player.sendMessage(e.getMessage());
                 }
             }
             else if (args[0].equalsIgnoreCase("edit") && args.length > 1) {
+                if (!player.hasPermission(KitEnginePerms.ADMIN_EDIT)) {
+                    player.sendMessage(KitEngineLang.noPermission(KitEnginePerms.ADMIN_EDIT));
+                    return false;
+                }
+
                 String kitName = args[1];
-                player.openInventory(new KitAdminEditorGui(kitName).getInventory());
+                if (KitsManager2.kitExists(kitName)) {
+                    player.openInventory(new KitAdminEditorGui(kitName).getInventory());
+                } else {
+                    player.sendMessage("Kit with that name does not exist!");
+                }
             }
             else if (args[0].equalsIgnoreCase("delete") && args.length > 1) {
+                if (!player.hasPermission(KitEnginePerms.ADMIN_DELETE)) {
+                    player.sendMessage(KitEngineLang.noPermission(KitEnginePerms.ADMIN_DELETE));
+                    return false;
+                }
+
                 String kitName = args[1];
-                KitsManager.delete(kitName);
+                try {
+                    KitsManager2.deleteKit(kitName);
+                } catch (Exception e) {
+                    player.sendMessage(e.getMessage());
+                }
             }
-            else if (args[0].equalsIgnoreCase("reset") && args.length > 2) {
-                String targetName = args[2];
-                OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
+            else if (args[0].equalsIgnoreCase("reset") && args.length > 1) {
+                if (!player.hasPermission(KitEnginePerms.ADMIN_RESET)) {
+                    player.sendMessage(KitEngineLang.noPermission(KitEnginePerms.ADMIN_RESET));
+                    return false;
+                }
                 String kitName = args[1];
-                KitsManager.resetCooldown(kitName, target.getUniqueId());
+                UUID targetUUID = player.getUniqueId();
+                if (args.length > 2) {
+                    OfflinePlayer target = Bukkit.getOfflinePlayer(args[2]);
+                    targetUUID = target.getUniqueId();
+                }
+                KitsManager2.removeCooldown(kitName, targetUUID);
             }
             else if (args[0].equalsIgnoreCase("reload")) {
+                if (!player.hasPermission(KitEnginePerms.ADMIN_RELOAD)) {
+                    player.sendMessage(KitEngineLang.noPermission(KitEnginePerms.ADMIN_RELOAD));
+                    return false;
+                }
+
                 KitEngineConfig.reload(KitEngine.getInstance());
             }
         }
-
+        return false;
     }
 
     @Override
-    public Collection<String> suggest(CommandSourceStack css, String[] args) {
+    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String @NotNull [] args) {
         List<String> e = new ArrayList<>();
 
         if (args.length == 0) {
@@ -76,7 +120,7 @@ public class KitAdminCommand implements BasicCommand {
         }
 
         if (args.length == 2) {
-            for (String name : KitsManager.kits()) {
+            for (String name : KitsManager2.getKits()) {
                 if (name.toLowerCase().startsWith(args[1].toLowerCase())) e.add(name);
             }
         }

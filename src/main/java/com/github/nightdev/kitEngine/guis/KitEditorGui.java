@@ -1,19 +1,17 @@
 package com.github.nightdev.kitEngine.guis;
 
-import com.github.nightdev.kitEngine.KitEngine;
-import com.github.nightdev.kitEngine.core.KitEngineConfig;
+
 import com.github.nightdev.kitEngine.core.KitEngineItems;
-import com.github.nightdev.kitEngine.manager.KitsManager;
-import com.github.nightdev.kitEngine.manager.obj.Kit;
-import com.github.nightdev.kitEngine.manager.obj.KitContents;
+import com.github.nightdev.kitEngine.manager.KitContents2;
+import com.github.nightdev.kitEngine.manager.KitsManager2;
 import com.github.nightdev.kitEngine.utils.KitUtils;
-import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -37,6 +35,12 @@ public class KitEditorGui implements InventoryHolder, Listener {
         SLOT_PLACEMENTS.put(6, 33);
         SLOT_PLACEMENTS.put(7, 34);
         SLOT_PLACEMENTS.put(8, 35);
+
+        SLOT_PLACEMENTS.put(36, 39);
+        SLOT_PLACEMENTS.put(37, 38);
+        SLOT_PLACEMENTS.put(38, 37);
+        SLOT_PLACEMENTS.put(39, 36);
+        SLOT_PLACEMENTS.put(40, 40);
         for (int i = 0; i < 27; i++) {
             SLOT_PLACEMENTS.put(i + 9, i);
         }
@@ -57,24 +61,18 @@ public class KitEditorGui implements InventoryHolder, Listener {
 
     @Override
     public @NotNull Inventory getInventory() {
-        Inventory inv = Bukkit.createInventory(this, 6 * 9, KitUtils.format("Kit Editor (" + kitName + ")"));
 
-        Kit kit = KitsManager.kit(kitName, player);
+        KitContents2 contents = KitsManager2.getKit(kitName, player.getUniqueId());
+        Inventory inv = Bukkit.createInventory(this, 6 * 9, KitUtils.format("Kit Editor (" + kitName + ")"));
 
         for (int i = 41; i < inv.getSize(); i++) {
             inv.setItem(i, KitEngineItems.backgroundItem());
         }
-        for (int i = 0; i < 36; i++) {
-            ItemStack item = kit.contents.contents().get(i);
+        for (int i = 0; i < SLOT_PLACEMENTS.size(); i++) {
+            ItemStack item = contents.getItems().get(i);
             int slot = SLOT_PLACEMENTS.get(i);
             inv.setItem(slot, item);
         }
-
-        inv.setItem(36, kit.contents.helmet());
-        inv.setItem(37, kit.contents.chestplate());
-        inv.setItem(38, kit.contents.leggings());
-        inv.setItem(39, kit.contents.boots());
-        inv.setItem(40, kit.contents.offhand());
 
         inv.setItem(51, KitEngineItems.editorResetItem());
         inv.setItem(52, KitEngineItems.editorSaveItem());
@@ -87,6 +85,9 @@ public class KitEditorGui implements InventoryHolder, Listener {
         Player player = (Player) event.getWhoClicked();
         if (event.getView().getTopInventory().getHolder() instanceof KitEditorGui kitEditor) {
             Inventory inv = event.getView().getTopInventory();
+            if (event.getClickedInventory() == null) {
+                event.setCancelled(true);
+            }
             if (event.getRawSlot() > 40) {
                 event.setCancelled(true);
             }
@@ -105,8 +106,7 @@ public class KitEditorGui implements InventoryHolder, Listener {
             String kitName = kitEditor.kitName;
 
             if (KitEngineItems.isItem(KitEngineItems.EDITOR_RESET_KEY, item)) {
-                Kit kit = KitsManager.kit(kitName);
-                KitsManager.layout(kitName, player, null);
+                KitsManager2.layout(kitName, player.getUniqueId(), null);
                 player.openInventory(new KitEditorGui(player, kitName).getInventory());
             }
 
@@ -117,18 +117,17 @@ public class KitEditorGui implements InventoryHolder, Listener {
                     int to = SLOT_PLACEMENTS_REVERSED.get(from);
                     contents.put(to, i);
                 }
-
-                KitContents kitContents = new KitContents(
-                        contents,
-                        inv.getItem(36),
-                        inv.getItem(37),
-                        inv.getItem(38),
-                        inv.getItem(39),
-                        inv.getItem(40)
-                );
-                KitsManager.layout(kitEditor.kitName, player, kitContents);
+                KitContents2 c = new KitContents2(contents);
+                KitsManager2.layout(kitEditor.kitName, player.getUniqueId(), c);
                 player.openInventory(new KitsGui(1, player).getInventory());
             }
+        }
+    }
+
+    @EventHandler
+    public void on(InventoryCloseEvent event) {
+        if (event.getView().getTopInventory().getHolder() instanceof KitEditorGui kitEditor) {
+            event.getView().setCursor(null);
         }
     }
 }
