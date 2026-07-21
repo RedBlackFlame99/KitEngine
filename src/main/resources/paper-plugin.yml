@@ -1,0 +1,9 @@
+name: KitEngine
+version: '${version}'
+
+main: com.github.nightdev.kitEngine.KitEngine
+api-version: '26.2'
+load: POSTWORLD
+
+authors: [ NightDevMC ]
+website: https://youtube.com/@NightDevMC
