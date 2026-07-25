@@ -4,6 +4,7 @@ import com.github.nightdev.kitEngine.KitEngine;
 import com.github.nightdev.kitEngine.api.Menu;
 import com.github.nightdev.kitEngine.kits.KitsManager;
 import com.github.nightdev.kitEngine.kits.obj.Kit;
+import com.github.nightdev.kitEngine.kits.obj.meta.KitGroup;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -35,6 +36,12 @@ public class PlayerInputListener {
         if (playerInput == PlayerInput.DISPLAY_NAME) {
             KitsManager.editKit(kitName, kit -> {
                 kit.meta.displayName = input;
+            });
+            success = true;
+        }
+        else if (playerInput == PlayerInput.GROUP) {
+            KitsManager.editKit(kitName, kit -> {
+                kit.meta.group = new KitGroup(input);
             });
             success = true;
         }
@@ -77,10 +84,44 @@ public class PlayerInputListener {
                 success = true;
             } catch (Exception e) {}
         }
+        else if (playerInput == PlayerInput.ON_SUCCESS_ADD) {
+            KitsManager.editKit(kitName, kit -> {
+                kit.meta.onSuccess.add(input);
+            });
+            success = true;
+        }
+        else if (playerInput == PlayerInput.ON_SUCCESS_REMOVE) {
+            try {
+                int index = Integer.parseInt(input);
+                KitsManager.editKit(kitName, kit -> {
+                    if (index >= 0 && index < kit.meta.onSuccess.size()) {
+                        kit.meta.onSuccess.remove(index);
+                    }
+                });
+                success = true;
+            } catch (Exception e) {}
+        }
+        else if (playerInput == PlayerInput.ON_FAILURE_ADD) {
+            KitsManager.editKit(kitName, kit -> kit.meta.onFailure.add(input));
+            success = true;
+        }
+        else if (playerInput == PlayerInput.ON_FAILURE_REMOVE) {
+            try {
+                int index = Integer.parseInt(input);
+                KitsManager.editKit(kitName, kit -> {
+                    if (index >= 0 && index < kit.meta.onFailure.size()) {
+                        kit.meta.onFailure.remove(index);
+                    }
+                });
+                success = true;
+            } catch (Exception e) {}
+        }
 
         if (success) {
             REQUESTS.remove(player.getUniqueId());
             KIT_NAMES.remove(player.getUniqueId());
+
+            // Only because this is an async event
             Bukkit.getScheduler().runTask(KitEngine.getInstance(), task -> {
                 Menu.openKitAdminMenu(player, KitsManager.retrieveKit(kitName));
             });

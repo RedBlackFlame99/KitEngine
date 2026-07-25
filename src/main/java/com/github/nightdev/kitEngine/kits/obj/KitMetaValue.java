@@ -1,5 +1,6 @@
 package com.github.nightdev.kitEngine.kits.obj;
 
+import com.github.nightdev.kitEngine.kits.obj.meta.KitGroup;
 import com.sun.source.tree.BreakTree;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -10,6 +11,7 @@ import java.util.Map;
 public enum KitMetaValue {
     DISPLAY_NAME("displayName", "{0}"),
     DISPLAY_ITEM("displayItem", ItemStack.of(Material.CHEST)),
+    GROUP("kitGroup", KitGroup.global()),
     SLOT("slot", -1),
     REQUIRES_EMPTY_INVENTORY("requiresEmptyInv", true),
     USE_KIT_EDITOR("useKitEditor", true),

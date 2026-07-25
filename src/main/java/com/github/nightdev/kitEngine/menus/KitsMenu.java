@@ -5,6 +5,7 @@ import com.github.nightdev.kitEngine.api.KitEngineItems;
 import com.github.nightdev.kitEngine.api.Menu;
 import com.github.nightdev.kitEngine.kits.KitsManager;
 import com.github.nightdev.kitEngine.kits.obj.Kit;
+import com.github.nightdev.kitEngine.kits.obj.meta.KitGroup;
 import com.github.nightdev.kitEngine.utils.KitUtils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -31,17 +32,19 @@ public class KitsMenu implements Menu<KitsMenu> {
     private BukkitTask UPDATE_MENU;
 
     private final Player player;
+    private final KitGroup group;
     private final int page;
 
-    public KitsMenu(Player player, int page) {
+    public KitsMenu(Player player, KitGroup group, int page) {
         this.player = player;
+        this.group = group;
         this.page = page;
     }
 
 
     @Override
     public KitsMenu register(KitEngine plugin) {
-        KIT_ITEM_KEY = Menu.random();
+        KIT_ITEM_KEY = Menu.key("kits_kit");
         return this;
     }
 
@@ -71,6 +74,7 @@ public class KitsMenu implements Menu<KitsMenu> {
 
     private void refreshItems(Inventory inv) {
         for (Kit kit : KitsManager.getKits()) {
+            if (kit.meta.group.global && this.group.global) continue;
             int slot = kit.meta.slot;
             if (slot >= minSlot(this.page) && slot <= maxSlot(this.page)) {
                 int realSlot = realSlot(slot, this.page);
@@ -111,10 +115,10 @@ public class KitsMenu implements Menu<KitsMenu> {
             }
         }
         else if (this.isItem(KitEngineItems.BACK_PAGE, item)) {
-            Menu.openKitsMenu(player, this.page - 1);
+            Menu.openKitsMenu(player, menu.group, this.page - 1);
         }
         else if (this.isItem(KitEngineItems.NEXT_PAGE, item)) {
-            Menu.openKitsMenu(player, this.page + 1);
+            Menu.openKitsMenu(player, menu.group, this.page + 1);
         }
     }
 

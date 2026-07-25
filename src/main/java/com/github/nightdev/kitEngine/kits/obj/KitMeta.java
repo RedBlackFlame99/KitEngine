@@ -1,6 +1,8 @@
 package com.github.nightdev.kitEngine.kits.obj;
 
+import com.github.nightdev.kitEngine.kits.obj.meta.KitGroup;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.bukkit.configuration.serialization.SerializableAs;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.stylesheets.LinkStyle;
@@ -9,10 +11,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@SerializableAs("KitMeta")
 public class KitMeta implements ConfigurationSerializable {
 
     public String displayName;
     public ItemStack displayItem;
+    public KitGroup group;
     public int slot;
     public boolean requiresEmptyInv;
     public boolean useKitEditor;
@@ -39,6 +43,7 @@ public class KitMeta implements ConfigurationSerializable {
     public KitMeta(
             String displayName,
             ItemStack displayItem,
+            KitGroup group,
             int slot,
             boolean requiresEmptyInv,
             boolean useKitEditor,
@@ -59,6 +64,7 @@ public class KitMeta implements ConfigurationSerializable {
     ) {
         this.displayName = displayName;
         this.displayItem = displayItem;
+        this.group = group;
         this.slot = slot;
         this.requiresEmptyInv = requiresEmptyInv;
         this.useKitEditor = useKitEditor;
@@ -82,6 +88,7 @@ public class KitMeta implements ConfigurationSerializable {
         return new KitMeta(
                 KitMetaValue.DISPLAY_NAME.getDefaultValueAsString(kitName),
                 KitMetaValue.DISPLAY_ITEM.getDefaultValueAsItem(),
+                (KitGroup) KitMetaValue.GROUP.getDefaultValue(),
                 KitMetaValue.SLOT.getDefaultValueAsInt(),
                 KitMetaValue.REQUIRES_EMPTY_INVENTORY.getDefaultValueAsBool(),
                 KitMetaValue.USE_KIT_EDITOR.getDefaultValueAsBool(),
@@ -107,6 +114,7 @@ public class KitMeta implements ConfigurationSerializable {
         Map<String, Object> data = new HashMap<>();
         data.put(KitMetaValue.DISPLAY_NAME.getPath(), this.displayName);
         data.put(KitMetaValue.DISPLAY_ITEM.getPath(), this.displayItem);
+        data.put(KitMetaValue.GROUP.getPath(), this.group);
         data.put(KitMetaValue.SLOT.getPath(), this.slot);
         data.put(KitMetaValue.REQUIRES_EMPTY_INVENTORY.getPath(), this.requiresEmptyInv);
         data.put(KitMetaValue.USE_KIT_EDITOR.getPath(), this.useKitEditor);
@@ -131,6 +139,7 @@ public class KitMeta implements ConfigurationSerializable {
         return new KitMeta(
                 (String) KitMetaValue.DISPLAY_NAME.value(data),
                 (ItemStack) KitMetaValue.DISPLAY_ITEM.value(data),
+                (KitGroup) KitMetaValue.GROUP.value(data),
                 (int) KitMetaValue.SLOT.value(data),
                 (boolean) KitMetaValue.REQUIRES_EMPTY_INVENTORY.value(data),
                 (boolean) KitMetaValue.USE_KIT_EDITOR.value(data),

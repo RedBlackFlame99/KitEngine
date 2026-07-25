@@ -16,3 +16,6 @@ commands:
     description: Open the kits menu!
   kitadmin:
     description: Opens the admin editor for kits!
+
+soft-depend:
+  - Vault

@@ -7,6 +7,7 @@ import com.github.nightdev.kitEngine.kits.input.PlayerInput;
 import com.github.nightdev.kitEngine.kits.input.PlayerInputListener;
 import com.github.nightdev.kitEngine.kits.obj.Kit;
 import com.github.nightdev.kitEngine.kits.obj.KitContents;
+import com.github.nightdev.kitEngine.kits.obj.meta.KitGroup;
 import com.github.nightdev.kitEngine.utils.KitUtils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -21,6 +22,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.checkerframework.checker.units.qual.K;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -32,6 +34,9 @@ public class KitAdminMenu implements Menu<KitAdminMenu> {
     private static NamespacedKey EDIT_DISPLAY_NAME_KEY;
     private static NamespacedKey EDIT_REI_KEY;
     private static NamespacedKey EDIT_KE_KEY;
+
+    private static NamespacedKey EDIT_ON_SUCCESS_KEY;
+    private static NamespacedKey EDIT_ON_FAILURE_KEY;
 
     private static NamespacedKey EDIT_SLOT_KEY;
     private static NamespacedKey EDIT_PERMISSION_KEY;
@@ -53,25 +58,28 @@ public class KitAdminMenu implements Menu<KitAdminMenu> {
 
     @Override
     public KitAdminMenu register(KitEngine plugin) {
-        BACKGROUND = Menu.random();
+        BACKGROUND = Menu.key("background");
 
-        STATUS_KEY = Menu.random();
-        EDIT_CONTENTS_KEY = Menu.random();
-        EDIT_DISPLAY_NAME_KEY = Menu.random();
-        EDIT_REI_KEY = Menu.random();
-        EDIT_KE_KEY = Menu.random();
+        STATUS_KEY = Menu.key("status");
+        EDIT_CONTENTS_KEY = Menu.key("edit_contents");
+        EDIT_DISPLAY_NAME_KEY = Menu.key("edit_display_name");
+        EDIT_REI_KEY = Menu.key("edit_requires_empty_inventory");
+        EDIT_KE_KEY = Menu.key("edit_kit_editor");
 
-        EDIT_SLOT_KEY = Menu.random();
-        EDIT_PERMISSION_KEY = Menu.random();
-        EDIT_COOLDOWN_KEY = Menu.random();
-        EDIT_COST_KEY = Menu.random();
-        EDIT_USES_KEY = Menu.random();
+        EDIT_ON_SUCCESS_KEY = Menu.key("edit_on_success_key");
+        EDIT_ON_FAILURE_KEY = Menu.key("edit_on_failure_key");
 
-        DRAG_DISPLAY_ITEM = Menu.random();
-        DRAG_NP_DISPLAY_ITEM = Menu.random();
-        DRAG_CD_DISPLAY_ITEM = Menu.random();
-        DRAG_C_DISPLAY_ITEM = Menu.random();
-        DRAG_U_DISPLAY_ITEM = Menu.random();
+        EDIT_SLOT_KEY = Menu.key("edit_slot");
+        EDIT_PERMISSION_KEY = Menu.key("edit_permission");
+        EDIT_COOLDOWN_KEY = Menu.key("edit_cooldown");
+        EDIT_COST_KEY = Menu.key("edit_cost");
+        EDIT_USES_KEY = Menu.key("edit_uses");
+
+        DRAG_DISPLAY_ITEM = Menu.key("edit_display_item");
+        DRAG_NP_DISPLAY_ITEM = Menu.key("edit_permission_di");
+        DRAG_CD_DISPLAY_ITEM = Menu.key("edit_cooldown_di");
+        DRAG_C_DISPLAY_ITEM = Menu.key("edit_cost_di");
+        DRAG_U_DISPLAY_ITEM = Menu.key("edit_uses_di");
         return this;
     }
 
@@ -89,6 +97,11 @@ public class KitAdminMenu implements Menu<KitAdminMenu> {
         inv.setItem(11, editDisplayNameItem());
         inv.setItem(12, editREIItem());
         inv.setItem(13, editKEItem());
+
+        /* On Success & On Failure
+        inv.setItem(15, editOnSuccessItem());
+        inv.setItem(16, editOnFailureItem());
+         */
 
         inv.setItem(28, editSlotItem());
         inv.setItem(29, editPermissionItem());
@@ -138,11 +151,59 @@ public class KitAdminMenu implements Menu<KitAdminMenu> {
             });
             reopenMenu = true;
         }
+        else if (this.isItem(EDIT_KE_KEY, item)) {
+            if (event.getClick() == ClickType.LEFT) {
+                KitsManager.editKit(kitName, kit -> {
+                    kit.meta.useKitEditor = !kit.meta.useKitEditor;
+                });
+                reopenMenu = true;
+            }
+        }
+
+        else if (this.isItem(EDIT_ON_SUCCESS_KEY, item)) {
+            if (event.getClick() == ClickType.LEFT) {
+                PlayerInputListener.setRequestingInput(
+                        player,
+                        PlayerInput.ON_SUCCESS_ADD,
+                        kitName
+                );
+            } else if (event.getClick() == ClickType.RIGHT) {
+                PlayerInputListener.setRequestingInput(
+                        player,
+                        PlayerInput.ON_SUCCESS_REMOVE,
+                        kitName
+                );
+            }
+        }
+        else if (this.isItem(EDIT_ON_FAILURE_KEY, item)) {
+            if (event.getClick() == ClickType.LEFT) {
+                PlayerInputListener.setRequestingInput(
+                        player, PlayerInput.ON_FAILURE_ADD, kitName
+                );
+            } else if (event.getClick() == ClickType.RIGHT) {
+                PlayerInputListener.setRequestingInput(
+                        player, PlayerInput.ON_FAILURE_REMOVE, kitName
+                );
+            }
+        }
 
         else if (this.isItem(EDIT_SLOT_KEY, item)) {
-            KitAdminSlotMenu m = new KitAdminSlotMenu(menu.kit, 1)
-                    .register(KitEngine.getInstance());
-            player.openInventory(m.getInventory());
+            if (event.getClick() == ClickType.LEFT) {
+                KitAdminSlotMenu m = new KitAdminSlotMenu(menu.kit, 1)
+                        .register(KitEngine.getInstance());
+                player.openInventory(m.getInventory());
+            } else if (event.getClick() == ClickType.RIGHT) {
+                PlayerInputListener.setRequestingInput(
+                        player,
+                        PlayerInput.GROUP,
+                        kitName
+                );
+            } else if (event.getClick() == ClickType.SHIFT_RIGHT) {
+                KitsManager.editKit(kitName, kit -> {
+                    kit.meta.group = KitGroup.global();
+                });
+                reopenMenu = true;
+            }
         }
         else if (this.isItem(EDIT_PERMISSION_KEY, item)) {
             if (event.getClick() == ClickType.LEFT) {
@@ -198,14 +259,6 @@ public class KitAdminMenu implements Menu<KitAdminMenu> {
                         PlayerInput.USES,
                         kitName
                 );
-            }
-        }
-        else if (this.isItem(EDIT_KE_KEY, item)) {
-            if (event.getClick() == ClickType.LEFT) {
-                KitsManager.editKit(kitName, kit -> {
-                    kit.meta.useKitEditor = !kit.meta.useKitEditor;
-                });
-                reopenMenu = true;
             }
         }
 
@@ -317,10 +370,57 @@ public class KitAdminMenu implements Menu<KitAdminMenu> {
         return item;
     }
 
+    public ItemStack editOnSuccessItem() {
+        ItemStack item = ItemStack.of(Material.LIME_DYE);
+        item.editMeta(meta -> {
+            meta.displayName(KitUtils.format("&a&lON SUCCESS"));
+            List<Component> lore = new ArrayList<>();
+            if (kit.meta.onSuccess.isEmpty()) {
+                lore.add(KitUtils.format("&7There are no actions to execute."));
+            } else {
+                int i = 0;
+                for (String cmd : kit.meta.onSuccess) {
+                    lore.add(KitUtils.format("&7" + i + ": " + cmd));
+                    i++;
+                }
+                lore.add(KitUtils.format("&7"));
+            }
+            lore.add(KitUtils.format("&7Left Click to add!"));
+            meta.lore(lore);
+        });
+        item.editPersistentDataContainer(pdc -> pdc.set(EDIT_ON_SUCCESS_KEY, PersistentDataType.BOOLEAN, true));
+        return item;
+    }
+    public ItemStack editOnFailureItem() {
+        ItemStack item = ItemStack.of(Material.RED_DYE);
+        item.editMeta(meta -> {
+            meta.displayName(KitUtils.format("&c&lON FAILURE"));
+            List<Component> lore = new ArrayList<>();
+            if (kit.meta.onFailure.isEmpty()) {
+                lore.add(KitUtils.format("&7There are no actions to execute."));
+            } else {
+                int i = 0;
+                for (String cmd : kit.meta.onFailure) {
+                    lore.add(KitUtils.format("&7" + i + ": " + cmd));
+                    i++;
+                }
+                lore.add(KitUtils.format("&7"));
+            }
+            lore.add(KitUtils.format("&7Left Click to add!"));
+            meta.lore(lore);
+        });
+        item.editPersistentDataContainer(pdc -> pdc.set(EDIT_ON_FAILURE_KEY, PersistentDataType.BOOLEAN, true));
+        return item;
+    }
+
     public ItemStack editSlotItem() {
         ItemStack item = ItemStack.of(Material.NETHER_STAR);
         item.editMeta(meta -> {
-            meta.displayName(KitUtils.format("&7Slot &8| &e" + kit.meta.slot));
+            meta.displayName(KitUtils.format("&b&lSLOT & GROUP"));
+            meta.lore(List.of(
+                    KitUtils.format("&7Slot &8| &f" + kit.meta.slot),
+                    KitUtils.format("&7Group &8| &f" + kit.meta.group.id)
+            ));
         });
         item.editPersistentDataContainer(pdc -> pdc.set(EDIT_SLOT_KEY, PersistentDataType.BOOLEAN, true));
         return item;

@@ -3,6 +3,7 @@ package com.github.nightdev.kitEngine.api;
 import com.github.nightdev.kitEngine.KitEngine;
 import com.github.nightdev.kitEngine.kits.LayoutManager;
 import com.github.nightdev.kitEngine.kits.obj.Kit;
+import com.github.nightdev.kitEngine.kits.obj.meta.KitGroup;
 import com.github.nightdev.kitEngine.menus.KitAdminMenu;
 import com.github.nightdev.kitEngine.menus.KitEditorMenu;
 import com.github.nightdev.kitEngine.menus.KitsMenu;
@@ -38,6 +39,9 @@ public interface Menu<T> extends InventoryHolder, Listener {
         event.setCancelled(true);
     }
 
+    static NamespacedKey key(String key) {
+        return new NamespacedKey(plugin, key);
+    }
     static NamespacedKey random() {
         return new NamespacedKey(plugin, "item_" + new Random().nextInt(Integer.MAX_VALUE));
     }
@@ -46,9 +50,9 @@ public interface Menu<T> extends InventoryHolder, Listener {
         return item.getPersistentDataContainer().has(key);
     }
 
-    static void openKitsMenu(Player player, int page) {
+    static void openKitsMenu(Player player, KitGroup group, int page) {
         player.openInventory(
-                new KitsMenu(player, page)
+                new KitsMenu(player, group, page)
                         .register(Menu.plugin)
                         .getInventory()
         );

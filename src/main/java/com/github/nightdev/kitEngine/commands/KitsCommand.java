@@ -1,6 +1,7 @@
 package com.github.nightdev.kitEngine.commands;
 
 import com.github.nightdev.kitEngine.api.Menu;
+import com.github.nightdev.kitEngine.kits.obj.meta.KitGroup;
 import io.papermc.paper.command.brigadier.BasicCommand;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import org.bukkit.command.Command;
@@ -27,7 +28,7 @@ public class KitsCommand implements TabExecutor {
             }
         }
 
-        Menu.openKitsMenu(player, page);
+        Menu.openKitsMenu(player, KitGroup.global(), page);
         return true;
     }
 

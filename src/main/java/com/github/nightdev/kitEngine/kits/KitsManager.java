@@ -1,8 +1,10 @@
 package com.github.nightdev.kitEngine.kits;
 
 import com.github.nightdev.kitEngine.KitEngine;
+import com.github.nightdev.kitEngine.api.KitEngineLang;
 import com.github.nightdev.kitEngine.kits.obj.Kit;
 import com.github.nightdev.kitEngine.kits.obj.KitContents;
+import com.github.nightdev.kitEngine.utils.KitUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -170,55 +172,93 @@ public class KitsManager {
     }
 
     public static void claim(String name, Player player) {
-        if (name == null || player == null) {
-            return;
+        Kit kit = retrieveKit(name);
+        Map<String, String> args = Map.of(
+                "player", player.getName()
+        );
+        if (claim(name, player, false)) {
+            handleActions(kit.meta.onSuccess, args);
+        } else {
+            handleActions(kit.meta.onFailure, args);
         }
+    }
+    public static void force(String name, Player player) {
+        Kit kit = retrieveKit(name);
+        Map<String, String> args = Map.of(
+                "player", player.getName()
+        );
+        if (claim(name, player, true)) {
+            handleActions(kit.meta.onSuccess, args);
+        } else {
+            handleActions(kit.meta.onFailure, args);
+        }
+    }
 
+    private static boolean claim(String name, Player player, boolean force) {
         Kit kit = retrieveKit(name);
 
         if (kit == null) {
-            return;
+            return false;
         }
 
-        if (kit.meta == null) {
-            Bukkit.getLogger().warning("Kit '" + name + "' has null meta, cannot process claim.");
-            return;
-        }
+        if (!force) {
 
-        if (!kit.enabled) {
-            player.sendMessage("This kit is disabled!");
-            return;
-        }
+            if (kit.meta == null) {
+                Bukkit.getLogger().warning("Kit '" + name + "' has null meta, cannot process claim.");
+                return false;
+            }
 
-        if (kit.meta.permissionEnabled && (kit.meta.permission == null || !player.hasPermission(kit.meta.permission))) {
-            player.sendMessage("No Permission!");
-            return;
-        }
+            if (!kit.enabled) {
+                KitEngineLang.KIT_DISABLED.send(player);
+                return false;
+            }
 
-        if (kit.meta.cooldownEnabled && getRemainingCooldown(player, kit) > 0) {
-            player.sendMessage("On cooldown!");
-            return;
-        }
+            if (kit.meta.permissionEnabled &&
+                    (kit.meta.permission == null || !player.hasPermission(kit.meta.permission))) {
+                KitEngineLang.KIT_NO_PERMS.send(player, kit.meta.permission);
+                return false;
+            }
 
-        if (player.getInventory() == null) {
-            return;
-        }
+            if (kit.meta.cooldownEnabled && getRemainingCooldown(player, kit) > 0) {
+                KitEngineLang.KIT_COOLDOWN.send(player,
+                        KitUtils.formatTime(getRemainingCooldown(player, kit)));
+                return false;
+            }
 
-        if (kit.meta.requiresEmptyInv && !player.getInventory().isEmpty()) {
-            player.sendMessage("Your inventory is not empty!");
-            return;
+            if (kit.meta.requiresEmptyInv && !player.getInventory().isEmpty()) {
+                KitEngineLang.KIT_INV_ISNT_EMPTY.send(player);
+                return false;
+            }
         }
 
         KitContents contents = LayoutManager.getLayout(player, kit);
+
         if (contents == null) {
-            Bukkit.getLogger().warning("Failed to retrieve layout contents for kit: " + name);
-            return;
+            return false;
         }
 
         kit.apply(player, contents);
 
-        setCooldown(player, kit);
-        addUse(player, kit);
+        if (!force) {
+            KitEngineLang.KIT_SUCCESS.send(player, kit.getName());
+            setCooldown(player, kit);
+            addUse(player, kit);
+        }
+        return true;
+    }
+
+    private static void handleActions(List<String> commands, Map<String, String> args) {
+        if (commands.isEmpty()) return;
+        for (String cmd : commands) {
+            for (String arg : args.keySet()) {
+                String repl = args.get(arg);
+                cmd = cmd.replace("@" + arg, repl);
+            }
+            Bukkit.dispatchCommand(
+                    Bukkit.getConsoleSender(),
+                    cmd
+            );
+        }
     }
 
     public static List<Kit> getKits() {

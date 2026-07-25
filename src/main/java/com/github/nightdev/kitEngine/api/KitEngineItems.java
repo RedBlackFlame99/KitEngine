@@ -11,8 +11,8 @@ public class KitEngineItems {
     public static NamespacedKey BACK_PAGE;
 
     public static void register() {
-        NEXT_PAGE = Menu.random();
-        BACK_PAGE = Menu.random();
+        NEXT_PAGE = Menu.key("next_page");
+        BACK_PAGE = Menu.key("back_page");
     }
 
     public static ItemStack backgroundItem() {

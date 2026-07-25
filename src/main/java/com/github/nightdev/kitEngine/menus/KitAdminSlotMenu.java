@@ -30,7 +30,7 @@ public class KitAdminSlotMenu implements Menu<KitAdminSlotMenu> {
 
     @Override
     public KitAdminSlotMenu register(KitEngine plugin) {
-        SLOT_KEY = Menu.random();
+        SLOT_KEY = Menu.key("slot_edit");
         return this;
     }
 

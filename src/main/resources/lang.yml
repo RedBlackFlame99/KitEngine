@@ -1,0 +1,20 @@
+prefix: "&b♠ &r"
+
+kit:
+  success: "&aYou have successfully claimed kit {0}!"
+  disabled: "&cThis kit is disabled!"
+  no-perms: "&cYou do not have permission to claim this!"
+  cooldown: "&cThis kit is on cooldown! &e{0}"
+  inv-isnt-empty: "&cYour inventory is not empty!"
+
+  admin:
+    create: "&aKit named {0} has been created!"
+    delete: "&aKit named {0} has been deleted!"
+    edit: "&aOpening admin kit editor for {0}..."
+
+error:
+  unknown: "&cAn error has occurred: &7{0}"
+
+  no-permission: "&cYou do not have permission for this!"
+  kit-already-exists: "&cKit with id &4{0} &calready exists!"
+  kit-does-not-exist: "&cKit with id &4{0} &cdoes not exist!"

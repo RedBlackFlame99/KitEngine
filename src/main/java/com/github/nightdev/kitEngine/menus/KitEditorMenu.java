@@ -66,8 +66,8 @@ public class KitEditorMenu implements Menu<KitEditorMenu> {
 
     @Override
     public KitEditorMenu register(KitEngine plugin) {
-        SAVE = Menu.random();
-        RESET = Menu.random();
+        SAVE = Menu.key("kit_editor_save");
+        RESET = Menu.key("kit_editor_reset");
         return this;
     }
 
@@ -107,7 +107,7 @@ public class KitEditorMenu implements Menu<KitEditorMenu> {
         KitContents contents = fromInventory(inv);
         if (this.isItem(SAVE, item)) {
             LayoutManager.saveLayout(player, menu.kit, contents);
-            Menu.openKitsMenu(player, 1);
+            Menu.openKitsMenu(player, menu.kit.meta.group, 1);
         }
         else if (this.isItem(RESET, item)) {
             LayoutManager.deleteLayout(player, menu.kit);

@@ -2,6 +2,7 @@ package com.github.nightdev.kitEngine.kits.obj;
 
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
+import org.bukkit.configuration.serialization.SerializableAs;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.jetbrains.annotations.NotNull;
@@ -9,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 
+@SerializableAs("KitContents")
 public class KitContents implements ConfigurationSerializable {
 
     private final Map<Integer, ItemStack> CONTENTS;
